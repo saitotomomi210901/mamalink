@@ -5,17 +5,16 @@
   --color-secondary: #E2725B;
   --color-background: #FDFDFD;
   --color-text: #333333;
-
-  --font-sans: "Noto Sans JP", "Inter", sans-serif;
 }
 
 :root {
-  --background: var(--color-background);
-  --foreground: var(--color-text);
+  --background: #FDFDFD;
+  --text: #333333;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
+  background-color: var(--background);
+  color: var(--text);
+  margin: 0;
+  font-family: var(--font-noto), sans-serif;
 }

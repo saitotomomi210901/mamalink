@@ -42,7 +42,7 @@ export default function LoginPage() {
 
       <div className="space-y-4">
         <button 
-          onClick={() => router.push("/")}
+          onClick={() => router.push("/sign-in")}
           className="w-full py-4 bg-primary text-white font-bold rounded-2xl shadow-lg shadow-primary/20 hover:opacity-95 transition-all"
         >
           はじめる

@@ -18,7 +18,8 @@
     "class-variance-authority": "^0.7.1",
     "@clerk/nextjs": "latest",
     "@supabase/supabase-js": "latest",
-    "@supabase/ssr": "latest"
+    "@supabase/ssr": "latest",
+    "framer-motion": "^11.18.2"
   },
   "devDependencies": {
     "typescript": "^5.4.0",

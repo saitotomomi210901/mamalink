@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Sans_JP, Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { RealtimeProvider } from "@/app/components/realtime/RealtimeProvider";
 import "./globals.css";
 
 const notoLines = Noto_Sans_JP({
@@ -24,10 +25,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
-      <html lang="ja">
+    <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
+      <html lang="ja" suppressHydrationWarning>
         <body className={`${notoLines.variable} ${inter.variable} font-sans antialiased bg-background text-text`}>
-          {children}
+          <RealtimeProvider>
+            {children}
+          </RealtimeProvider>
         </body>
       </html>
     </ClerkProvider>
