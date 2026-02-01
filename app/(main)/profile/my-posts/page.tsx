@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { TabBar } from "@/app/components/layout/TabBar";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
-import { ChevronLeft, MessageSquare, Clock, CheckCircle2, ChevronRight, Users } from "lucide-react";
+import { ChevronLeft, MessageSquare, Clock, CheckCircle2, ChevronRight, Users, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 

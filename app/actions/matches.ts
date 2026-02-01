@@ -80,7 +80,7 @@ export async function handleSwipe(postId: string, actionType: 'like' | 'skip') {
     // 2. 'like' の場合は matches テーブルにも応募として登録する
     if (actionType === 'like') {
       const result = await applyToPost(postId)
-      if (!result.success) throw new Error(result.error)
+      if (!result.success) throw new Error((result as any).error)
     }
 
     return { success: true }

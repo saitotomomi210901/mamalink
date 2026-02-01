@@ -20,7 +20,7 @@ export default function AcceptButton({ postId, matchId, status }: AcceptButtonPr
       const result = await acceptMatch(postId, matchId);
       if (!result.success) {
         // エラー内容に応じてユーザーにわかりやすいメッセージを表示
-        alert(result.error || "マッチングの確定に失敗しました。時間をおいて再度お試しください。");
+        alert((result as any).error || "マッチングの確定に失敗しました。時間をおいて再度お試しください。");
       }
     });
   };
