@@ -94,7 +94,7 @@ export async function getPosts() {
   try {
     const { userId } = await auth()
     const supabase = createServiceRoleClient()
-
+    
     let query = supabase
       .from('posts')
       .select('*, author:profiles(display_name, trust_score, avatar_url, is_kyc_verified)')
@@ -121,7 +121,11 @@ export async function getPosts() {
 
     if (error) throw error
     return { success: true, data }
-  } catch (error) {
+  } catch (error: any) {
+    // Next.jsのビルド時の動的レンダリングエラーはそのまま投げる必要がある
+    if (error?.digest === 'DYNAMIC_SERVER_USAGE') {
+      throw error;
+    }
     console.error('Get posts error:', error)
     return { success: false, error: '投稿の取得に失敗しました' }
   }

@@ -2,10 +2,12 @@ import { Header } from "@/app/components/layout/Header";
 import { TabBar } from "@/app/components/layout/TabBar";
 import { CardStack } from "@/app/components/ui/CardStack";
 import { getPosts } from "@/app/actions/posts";
-import { Sparkles, Users, MessageCircle, LogIn, UserPlus, MousePointer2, MessageSquare } from "lucide-react";
+import { Sparkles, LogIn, UserPlus, MousePointer2, MessageSquare } from "lucide-react";
 import { Suspense } from "react";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
+
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const { data: posts, error } = await getPosts();
