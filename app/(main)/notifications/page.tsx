@@ -12,29 +12,43 @@ export default async function NotificationsPage() {
   const supabase = createServiceRoleClient();
 
   // 最新のメッセージを取得して、会話リストを作成
-  const { data: messages } = await supabase
-    .from('messages')
+  const { data: messages, error: messagesError } = await supabase
+    .from('chats')
     .select(`
       *,
-      sender:profiles!sender_id(display_name, avatar_url),
-      receiver:profiles!receiver_id(display_name, avatar_url)
+      match:matches!inner(
+        id,
+        post_id,
+        user_id,
+        user:profiles!user_id(display_name, avatar_url),
+        post:posts(
+          author_id,
+          author:profiles!author_id(display_name, avatar_url)
+        )
+      ),
+      sender:profiles!sender_id(display_name, avatar_url)
     `)
-    .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
     .order('created_at', { ascending: false });
 
   // 会話相手ごとにユニークなリストを作成
   const conversationsMap = new Map();
-  messages?.forEach(msg => {
-    const partnerId = msg.sender_id === userId ? msg.receiver_id : msg.sender_id;
-    const partner = msg.sender_id === userId ? msg.receiver : msg.sender;
+  messages?.forEach((msg: any) => {
+    // 自分に関係のあるメッセージかチェック
+    const isPostAuthor = msg.match.post.author_id === userId;
+    const isApplicant = msg.match.user_id === userId;
     
-    if (!conversationsMap.has(partnerId)) {
-      conversationsMap.set(partnerId, {
+    if (!isPostAuthor && !isApplicant) return;
+
+    const partner = isPostAuthor ? msg.match.user : msg.match.post.author;
+    const partnerId = isPostAuthor ? msg.match.user_id : msg.match.post.author_id;
+    
+    if (!conversationsMap.has(msg.match_id)) {
+      conversationsMap.set(msg.match_id, {
         partnerId,
         partner,
         lastMessage: msg.content,
         timestamp: msg.created_at,
-        postId: msg.post_id || `direct-${partnerId}`
+        postId: msg.match.post_id
       });
     }
   });

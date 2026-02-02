@@ -157,13 +157,13 @@ export default async function ProfilePage() {
             </div>
             <ChevronRight size={18} className="text-gray-300" />
           </button>
-          <button className="w-full px-4 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+          <Link href="/profile/liked-posts" className="w-full px-4 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
             <div className="flex items-center gap-3">
               <Heart className="text-secondary" size={20} />
-              <span className="text-sm font-medium text-gray-700">お気に入り</span>
+              <span className="text-sm font-medium text-gray-700">お気に入り（興味あり）</span>
             </div>
             <ChevronRight size={18} className="text-gray-300" />
-          </button>
+          </Link>
         </section>
 
         <SignOutButton>

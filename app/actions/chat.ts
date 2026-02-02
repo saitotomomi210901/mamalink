@@ -14,24 +14,38 @@ export async function sendMessage(postId: string, receiverId: string, content: s
 
     const supabase = createServiceRoleClient()
 
-    // postId が UUID でない場合（'direct-...' など）は null にする
+    // 1. マッチングIDを取得（または作成）
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(postId);
-    const dbPostId = isUuid ? postId : null;
+    
+    let matchId: string;
+    if (isUuid) {
+      const { data: match } = await supabase
+        .from('matches')
+        .select('id')
+        .eq('post_id', postId)
+        .or(`user_id.eq.${userId},user_id.eq.${receiverId}`)
+        .single();
+      
+      if (!match) throw new Error('マッチングが見つかりません');
+      matchId = match.id;
+    } else {
+      throw new Error('不正なリクエストです');
+    }
 
+    // 2. chatsテーブルに挿入
     const { data, error } = await supabase
-      .from('messages')
+      .from('chats')
       .insert({
-        post_id: dbPostId,
+        match_id: matchId,
         sender_id: userId,
-        receiver_id: receiverId,
         content: content.trim()
       })
       .select()
       .single()
 
     if (error) {
-      console.error('メッセージ送信エラー:', error)
-      throw new Error('メッセージの送信に失敗しました')
+      console.error('メッセージ送信エラー詳細:', error)
+      throw new Error(`メッセージの送信に失敗しました: ${error.message}`)
     }
 
     // リアルタイム通知とメッセージ送信
@@ -78,20 +92,23 @@ export async function getMessages(postId: string) {
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(postId);
     
     let query = supabase
-      .from('messages')
+      .from('chats')
       .select(`
         *,
-        sender:profiles!sender_id(display_name, avatar_url),
-        receiver:profiles!receiver_id(display_name, avatar_url)
+        sender:profiles!sender_id(display_name, avatar_url)
       `)
 
     if (isUuid) {
-      query = query.eq('post_id', postId);
-    } else if (postId.startsWith('direct-')) {
-      const targetId = postId.replace('direct-', '');
-      query = query
-        .is('post_id', null)
-        .or(`and(sender_id.eq.${userId},receiver_id.eq.${targetId}),and(sender_id.eq.${targetId},receiver_id.eq.${userId})`);
+      // 投稿に紐づくマッチングIDを介して取得
+      const { data: matches } = await supabase
+        .from('matches')
+        .select('id')
+        .eq('post_id', postId);
+      
+      const matchIds = matches?.map(m => m.id) || [];
+      if (matchIds.length === 0) return { success: true, data: [] };
+      
+      query = query.in('match_id', matchIds);
     } else {
       return { success: true, data: [] };
     }

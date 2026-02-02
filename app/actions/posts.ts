@@ -4,6 +4,7 @@ import { auth } from '@clerk/nextjs/server'
 import { revalidatePath } from 'next/cache'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { createClient } from '@/lib/supabase/server'
+import { ensureSupabaseUser } from '@/lib/supabase/auth-helpers'
 
 /**
  * 新規投稿を作成
@@ -13,44 +14,32 @@ export async function createPost(formData: FormData) {
     const { userId } = await auth()
     if (!userId) throw new Error('認証が必要です')
 
+    // プロフィールが存在することを確認
+    await ensureSupabaseUser()
+
     const mode = formData.get('mode') as string
     const title = formData.get('title') as string
     const content = formData.get('content') as string
     const location_name = formData.get('location_name') as string
-    const scheduled_at = formData.get('scheduled_at') as string
+    const scheduled_at_raw = formData.get('scheduled_at') as string
     const max_participants = parseInt(formData.get('max_participants') as string || '1')
-    const latitude = formData.get('latitude') ? parseFloat(formData.get('latitude') as string) : null
-    const longitude = formData.get('longitude') ? parseFloat(formData.get('longitude') as string) : null
-    const imageFile = formData.get('image') as File | null
+    
+    let scheduled_at = null
+    if (scheduled_at_raw) {
+      const date = new Date(scheduled_at_raw)
+      if (!isNaN(date.getTime())) {
+        scheduled_at = date.toISOString()
+      }
+    }
 
     if (!title || !content || !mode) {
       throw new Error('必須項目が入力されていません')
     }
 
     const supabase = createServiceRoleClient()
-    let image_url = null
-
-    // 画像のアップロード処理
-    if (imageFile && imageFile.size > 0) {
-      const fileExt = imageFile.name.split('.').pop()
-      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
-      const filePath = `${userId}/${fileName}`
-
-      const { error: uploadError } = await supabase.storage
-        .from('post-images')
-        .upload(filePath, imageFile)
-
-      if (uploadError) {
-        console.error('Image upload error:', uploadError)
-        throw new Error('画像のアップロードに失敗しました')
-      }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('post-images')
-        .getPublicUrl(filePath)
-      
-      image_url = publicUrl
-    }
+    // let image_url = null
+    
+    // ... (image upload code if needed, currently commented out in insert)
 
     const { data, error } = await supabase
       .from('posts')
@@ -60,10 +49,10 @@ export async function createPost(formData: FormData) {
         title,
         content,
         location_name,
-        latitude,
-        longitude,
-        image_url,
-        scheduled_at: scheduled_at ? new Date(scheduled_at).toISOString() : null,
+        // latitude,
+        // longitude,
+        // image_url,
+        scheduled_at,
         max_participants,
         status: 'open'
       })
@@ -71,14 +60,14 @@ export async function createPost(formData: FormData) {
       .single()
 
     if (error) {
-      console.error('Supabase 挿入エラー:', error)
-      throw new Error('データベースへの保存に失敗しました')
+      console.error('Supabase 挿入エラー詳細:', error)
+      throw new Error(`データベースへの保存に失敗しました: ${error.message}`)
     }
 
     // キャッシュを更新して、ホーム画面に即座に反映させる
     revalidatePath('/')
     return { success: true, data }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Create post error:', error)
     return { 
       success: false, 

@@ -54,13 +54,17 @@ export default function NewPostPage() {
     }
 
     startTransition(async () => {
-      const result = await createPost(formData);
-      if (result.success) {
-        // 成功したらホームに戻る
-        router.push("/");
-        router.refresh();
-      } else {
-        setError(result.error || "エラーが発生しました");
+      try {
+        const result = await createPost(formData);
+        if (result.success) {
+          // 成功したらホームに戻る
+          router.push("/");
+          router.refresh();
+        } else {
+          setError(result.error || "エラーが発生しました");
+        }
+      } catch (e: any) {
+        setError(`エラーが発生しました: ${e.message || "不明なエラー"}`);
       }
     });
   };

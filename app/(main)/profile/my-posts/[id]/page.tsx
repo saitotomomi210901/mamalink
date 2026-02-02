@@ -63,18 +63,21 @@ export default async function PostApplicantsPage({ params }: { params: Promise<{
               {applicants.map((match: any) => (
                 <div key={match.id} className="bg-white rounded-[32px] border border-gray-50 shadow-sm overflow-hidden p-6 space-y-6">
                   <div className="flex items-start gap-4">
-                    <div className="w-14 h-14 rounded-full bg-gray-100 border-2 border-primary/10 overflow-hidden shrink-0">
+                    <Link 
+                      href={`/profile/${match.user?.id}`}
+                      className="w-14 h-14 rounded-full bg-gray-100 border-2 border-primary/10 overflow-hidden shrink-0 active:scale-95 transition-all"
+                    >
                       {match.user?.avatar_url ? (
                         <img src={match.user.avatar_url} alt="" className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-300 font-bold">?</div>
                       )}
-                    </div>
+                    </Link>
                     <div className="flex-1 space-y-1">
-                      <div className="flex items-center gap-1.5">
+                      <Link href={`/profile/${match.user?.id}`} className="flex items-center gap-1.5 active:opacity-70 transition-all">
                         <p className="font-black text-gray-800 text-base">{match.user?.display_name || '名称未設定'}</p>
                         {match.user?.is_kyc_verified && <BadgeCheck size={16} className="text-blue-500" />}
-                      </div>
+                      </Link>
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] bg-primary/10 text-primary font-black px-2 py-0.5 rounded-full">信頼スコア {match.user?.trust_score || 100}</span>
                         <div className="flex items-center text-yellow-400 gap-0.5">
