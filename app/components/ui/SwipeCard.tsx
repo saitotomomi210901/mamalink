@@ -84,9 +84,10 @@ export function SwipeCard({ post, onSwipe }: SwipeCardProps) {
         
         <div className={cn(
           "px-4 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase shadow-sm",
-          post.mode === 'tasukete' ? "bg-secondary/10 text-secondary" : "bg-primary/10 text-primary"
+          post.mode === 'tasukete' ? "bg-secondary/10 text-secondary" : 
+          post.mode === 'oshiete' ? "bg-blue-100 text-blue-600" : "bg-primary/10 text-primary"
         )}>
-          {post.mode === 'tasukete' ? 'たすけて' : 'あそぼ'}
+          {post.mode === 'tasukete' ? 'たすけて' : post.mode === 'oshiete' ? 'おしえて' : 'あそぼ'}
         </div>
       </div>
 

@@ -5,6 +5,7 @@ import { SwipeCard } from "./SwipeCard";
 import { AnimatePresence, motion } from "framer-motion";
 import { Heart, MessageCircle, RefreshCcw, Sparkles } from "lucide-react";
 import { handleSwipe as saveSwipeAction } from "@/app/actions/matches";
+import { cn } from "@/app/lib/utils";
 
 interface CardStackProps {
   initialPosts: any[];
@@ -12,12 +13,17 @@ interface CardStackProps {
 
 export function CardStack({ initialPosts }: CardStackProps) {
   const [posts, setPosts] = useState(initialPosts);
+  const [filter, setFilter] = useState<"all" | "asobo" | "oshiete" | "tasukete">("all");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPending, startTransition] = useTransition();
   const [showMatch, setShowMatch] = useState(false);
 
+  const filteredPosts = filter === "all" 
+    ? posts 
+    : posts.filter(post => post.mode === filter);
+
   const handleSwipe = (direction: "left" | "right") => {
-    const post = posts[currentIndex];
+    const post = filteredPosts[currentIndex];
     const actionType = direction === "right" ? "like" : "skip";
 
     // データベースに保存
@@ -41,10 +47,34 @@ export function CardStack({ initialPosts }: CardStackProps) {
     setCurrentIndex(0);
   };
 
+  const handleFilterChange = (newFilter: typeof filter) => {
+    setFilter(newFilter);
+    setCurrentIndex(0);
+  };
+
   return (
-    <div className="relative w-full max-w-sm mx-auto h-[550px] mt-4">
-      <AnimatePresence>
-        {showMatch && (
+    <div className="flex flex-col w-full max-w-sm mx-auto space-y-6">
+      {/* フィルターUI */}
+      <div className="flex gap-2 px-2 overflow-x-auto pb-2 scrollbar-hide">
+        {(["all", "asobo", "oshiete", "tasukete"] as const).map((f) => (
+          <button
+            key={f}
+            onClick={() => handleFilterChange(f)}
+            className={cn(
+              "px-5 py-2.5 rounded-2xl text-[11px] font-black transition-all shrink-0 shadow-sm border",
+              filter === f 
+                ? "bg-primary text-white border-primary shadow-primary/20 scale-105" 
+                : "bg-white text-gray-400 border-gray-100 hover:bg-gray-50"
+            )}
+          >
+            {f === "all" ? "すべて" : f === "asobo" ? "あそぼ" : f === "oshiete" ? "おしえて" : "たすけて"}
+          </button>
+        ))}
+      </div>
+
+      <div className="relative w-full h-[550px]">
+        <AnimatePresence mode="wait">
+          {showMatch && (
           <motion.div
             initial={{ opacity: 0, scale: 0.5, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -66,17 +96,17 @@ export function CardStack({ initialPosts }: CardStackProps) {
           </motion.div>
         )}
 
-        {currentIndex < posts.length ? (
+        {currentIndex < filteredPosts.length ? (
           <div className="relative w-full h-full">
             {/* 重なりの背景カード（視覚的な奥行き） */}
-            {currentIndex + 1 < posts.length && (
+            {currentIndex + 1 < filteredPosts.length && (
               <div className="absolute top-4 left-0 w-full h-[500px] bg-gray-50 rounded-[32px] border border-gray-100 scale-[0.95] opacity-50 translate-y-2 -z-10" />
             )}
             
             {/* メインのカード */}
             <SwipeCard 
-              key={posts[currentIndex].id}
-              post={posts[currentIndex]} 
+              key={filteredPosts[currentIndex].id}
+              post={filteredPosts[currentIndex]} 
               onSwipe={handleSwipe} 
             />
           </div>
@@ -105,6 +135,7 @@ export function CardStack({ initialPosts }: CardStackProps) {
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 }

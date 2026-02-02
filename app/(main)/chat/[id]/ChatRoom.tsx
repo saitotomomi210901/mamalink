@@ -108,6 +108,28 @@ export default function ChatRoom({
     });
   };
 
+  const sendQuickReply = async (text: string) => {
+    if (isPending) return;
+
+    // 即座に画面に反映
+    const tempId = Math.random().toString();
+    const newMessage: Message = {
+      id: tempId,
+      sender_id: currentUserId,
+      content: text,
+      created_at: new Date().toISOString(),
+    };
+    setMessages(prev => [...prev, newMessage]);
+
+    startTransition(async () => {
+      const result = await sendMessage(postId, receiverId, text);
+      if (!result.success) {
+        setMessages(prev => prev.filter(m => m.id !== tempId));
+        alert("送信に失敗しました");
+      }
+    });
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gray-50 max-w-md mx-auto">
       {/* ヘッダー */}
@@ -180,7 +202,21 @@ export default function ChatRoom({
       </main>
 
       {/* 入力エリア */}
-      <div className="p-4 bg-white border-t border-gray-100 pb-10">
+      <div className="p-4 bg-white border-t border-gray-100 pb-10 space-y-4">
+        {/* クイックリプライ */}
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          {["向かってます！", "到着しました", "ありがとうございます", "了解です！"].map((text) => (
+            <button
+              key={text}
+              type="button"
+              onClick={() => sendQuickReply(text)}
+              className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-full text-[10px] font-black text-gray-500 whitespace-nowrap active:bg-primary active:text-white transition-all shadow-sm"
+            >
+              {text}
+            </button>
+          ))}
+        </div>
+
         <form 
           onSubmit={handleSend}
           className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-[28px] border border-gray-100 focus-within:border-primary/30 focus-within:ring-4 focus-within:ring-primary/5 transition-all"
